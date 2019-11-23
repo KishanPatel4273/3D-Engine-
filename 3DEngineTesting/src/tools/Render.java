@@ -20,7 +20,7 @@ public class Render {
 	
 	public void drawPoint(int x, int y, int color){
 		if(x > 0 && x < width && y > 0 && y < height){
-			pixels[x + y * width] = color;
+			pixels[x + (height - y) * width] = color;
 		}
 	}
 	
@@ -32,30 +32,79 @@ public class Render {
 			float slope = ((float)(y1 - y2) / (x1 - x2));
 			for(int x = Math.min(x1, x2); x < Math.max(x1, x2); x++){
 				int y = (int) ((float)(slope * (x - x1) + y1)); 
-				if(x > 0 && x < width && y > 0 && y < height){
-					pixels[x + y * width] = color;
-				}
+				drawPoint(x, y, color);
 			}
 			for(int y = Math.min(y1, y2); y < Math.max(y1, y2); y++){
 				int x = (int) ((float)((y - y1) / slope)) + x1; 
-				if(x > 0 && x < width && y > 0 && y < height){
-					pixels[x + y * width] = color;
-				}
+				drawPoint(x, y, color);
 			}
 		} else {
 			for(int y = Math.min(y1, y2); y < Math.max(y1, y2); y++){
-				if(x1 > 0 && x1 < width && y > 0 && y < height){
-					pixels[x1 + y * width] = color;
-				}
+				drawPoint(x1, y, color);
+			}
+		}
+	}
+
+	public void drawHorizontalLine(int x1, int x2, int y) {
+		for (int x = Math.min(x1, x2); x < Math.max(x1, x2); x++) {
+			drawPoint(x, y, color);
+		}
+	}
+	
+	/**
+	 * @param a and c have same y value
+	 */
+	public void fillFlatTriangle(Vector a, Vector b, Vector c) {
+		float ABdy = (a.getX() - b.getX()) / (a.getY() - b.getY());
+		float CBdy = (c.getX() - b.getX()) / (c.getY() - b.getY());
+		if(a.getY() > b.getY()) {
+			for(int y = 0; y <= a.getY() - b.getY(); y++) {
+				drawHorizontalLine((int) (b.getX()+y*ABdy),(int) (b.getX()+y*CBdy), (int) (b.getY() + y));
+			}
+		} else if(a.getY() < b.getY()) {
+			for(int y = 0; y <= b.getY() - a.getY(); y++) {
+				drawHorizontalLine((int) (a.getX()+y*ABdy),(int) (c.getX()+y*CBdy), (int) (a.getY() + y));
 			}
 		}
 	}
 	
-	public void drawTriangle(Triangle t) {
-		drawLine((int)t.getVertices()[0].getX(),(int)t.getVertices()[0].getY(), (int)t.getVertices()[1].getX(),(int)t.getVertices()[1].getY());
-		drawLine((int)t.getVertices()[2].getX(),(int)t.getVertices()[2].getY(), (int)t.getVertices()[1].getX(),(int)t.getVertices()[1].getY());
+	public void fillTriangle(Vector a, Vector b, Vector c) {
+		//split
+		if(Math.min(b.getY(), c.getY()) <= a.getY() && a.getY() <= Math.max(b.getY(), c.getY())) {// a is middle
+			float BCdx = (c.getY() - b.getY()) / (c.getX() - b.getX());
+			float x = (a.getY() - b.getY()) / BCdx + b.getX();
+			Vector d = new Vector(x, a.getY());
+			fillFlatTriangle(a, b, d);
+			fillFlatTriangle(a, c, d);
+		} else if(Math.min(a.getY(), c.getY()) <= c.getY() && c.getY() <= Math.max(b.getY(), a.getY())) {// c is middle
+			float ABdx = (a.getY() - b.getY()) / (a.getX() - b.getX());
+			float x = (c.getY() - b.getY()) / ABdx + b.getX();
+			Vector d = new Vector(x, c.getY());
+			fillFlatTriangle(c, a, d);
+			fillFlatTriangle(c, b, d);
+		} else if(Math.min(a.getY(), c.getY()) <= b.getY() && b.getY() <= Math.max(a.getY(), c.getY())) {// b is middle
+			float ACdx = (a.getY() - c.getY()) / (a.getX() - c.getX());
+			float x = (b.getY() - a.getY()) / ACdx + a.getX();
+			Vector d = new Vector(x, b.getY());
+			fillFlatTriangle(b, a, d);
+			fillFlatTriangle(b, c, d);
+		}
 	}
-
+	
+	public void fillTriangle(Triangle t) {
+		t.orderXLeftToRight();
+		fillTriangle(t.getVertices()[0], t.getVertices()[1],t.getVertices()[2]);
+	}
+	
+	public void drawTriangle(Vector a, Vector b, Vector c) {
+		drawLine((int) a.getX(), (int)a.getY(), (int)b.getX(), (int)b.getY());
+		drawLine((int) a.getX(), (int)a.getY(), (int)c.getX(), (int)c.getY());
+		drawLine((int) c.getX(), (int)c.getY(), (int)b.getX(), (int)b.getY());
+	}
+	
+	public void drawTriangle(Triangle t) {
+		drawTriangle(t.getVertices()[0], t.getVertices()[1],t.getVertices()[2]);
+	}
 	
 	public void drawRectangle(int x1, int y1, int x2, int y2){
 		drawLine(x1,y1, x1,y2);
@@ -84,10 +133,6 @@ public class Render {
 	
 	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3){
 		drawTriangle(new float[]{x1,x2,x3},new float[]{y1,y2,y3});
-	}
-	
-	public void drawTriangle(Vector a, Vector b, Vector c) {
-		drawTriangle((int) a.getX(),(int) a.getY(),(int) b.getX(),(int) b.getY(),(int) c.getX(),(int) c.getY());
 	}
 	
 	public void drawEllipse(int centerX, int centerY, int a, int b){

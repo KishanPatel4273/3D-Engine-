@@ -42,11 +42,11 @@ public class Entity {
 			Vector[] toWorldTriangle = new Vector[3];
 			for(int j = 0; j < 3; j++) {//runs through points
 				Quaternion vertex = new Quaternion(0, trangle.getVertices()[j]);
+				vertex = Quaternion.add(vertex, new Quaternion(0, position));
 				vertex = Quaternion.rotate(Vector.i, vertex.getVector(), orientation.getX());//x
 				vertex = Quaternion.rotate(Vector.j, vertex.getVector(), orientation.getY());//y
 				vertex = Quaternion.rotate(Vector.k, vertex.getVector(), orientation.getZ());//z
 				vertex = Quaternion.scale(vertex, scale);
-				vertex = Quaternion.add(vertex, new Quaternion(0, position));
 				toWorldTriangle[j] = vertex.getVector();
 			}
 			toWorldMesh[i] = new Triangle(toWorldTriangle);

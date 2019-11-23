@@ -23,10 +23,10 @@ public class Camera {
 			position.addX(-movementspeed);
 		}
 		if(key[KeyEvent.VK_W]) {
-			position.addY(-movementspeed);
+			position.addY(movementspeed);
 		}
 		if(key[KeyEvent.VK_S]) {
-			position.addY(movementspeed);
+			position.addY(-movementspeed);
 		}
 		if(key[KeyEvent.VK_RIGHT]) {
 			orientation.addZ(movementspeed/180.0f);

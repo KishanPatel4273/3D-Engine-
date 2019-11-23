@@ -91,7 +91,7 @@ public class Quaternion {
 	
 	public static Quaternion rotate(Vector u, Vector v, float theta) {
 		Quaternion q = rotation(theta, u);
-		Quaternion qC = conjugate(q);
+		Quaternion qC = conjugate(q);	
 		Quaternion p = new Quaternion(0, v);
 		return multiply(multiply(q,p),qC);
 	}
